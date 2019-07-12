@@ -1,6 +1,7 @@
 from .xml_style import XMLDataset
+from .registry import DATASETS
 
-
+@DATASETS.register_module
 class VOCDataset(XMLDataset):
 
     CLASSES = ('door','hline','gline')
