@@ -1,6 +1,6 @@
 import torch
 
-from ..bbox import PseudoSampler, assign_and_sample, bbox2delta, build_assigner
+from ..bbox import assign_and_sample, build_assigner, PseudoSampler, bbox2delta
 from ..utils import multi_apply
 
 
@@ -11,7 +11,6 @@ def anchor_target(anchor_list,
                   target_means,
                   target_stds,
                   cfg,
-                  gt_bboxes_ignore_list=None,
                   gt_labels_list=None,
                   label_channels=1,
                   sampling=True,
@@ -42,8 +41,6 @@ def anchor_target(anchor_list,
         valid_flag_list[i] = torch.cat(valid_flag_list[i])
 
     # compute targets for each image
-    if gt_bboxes_ignore_list is None:
-        gt_bboxes_ignore_list = [None for _ in range(num_imgs)]
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
@@ -52,7 +49,6 @@ def anchor_target(anchor_list,
          anchor_list,
          valid_flag_list,
          gt_bboxes_list,
-         gt_bboxes_ignore_list,
          gt_labels_list,
          img_metas,
          target_means=target_means,
@@ -94,7 +90,6 @@ def images_to_levels(target, num_level_anchors):
 def anchor_target_single(flat_anchors,
                          valid_flags,
                          gt_bboxes,
-                         gt_bboxes_ignore,
                          gt_labels,
                          img_meta,
                          target_means,
@@ -113,11 +108,11 @@ def anchor_target_single(flat_anchors,
 
     if sampling:
         assign_result, sampling_result = assign_and_sample(
-            anchors, gt_bboxes, gt_bboxes_ignore, None, cfg)
+            anchors, gt_bboxes, None, None, cfg)
     else:
         bbox_assigner = build_assigner(cfg.assigner)
-        assign_result = bbox_assigner.assign(anchors, gt_bboxes,
-                                             gt_bboxes_ignore, gt_labels)
+        assign_result = bbox_assigner.assign(anchors, gt_bboxes, None,
+                                             gt_labels)
         bbox_sampler = PseudoSampler()
         sampling_result = bbox_sampler.sample(assign_result, anchors,
                                               gt_bboxes)
@@ -152,6 +147,9 @@ def anchor_target_single(flat_anchors,
         num_total_anchors = flat_anchors.size(0)
         labels = unmap(labels, num_total_anchors, inside_flags)
         label_weights = unmap(label_weights, num_total_anchors, inside_flags)
+        if label_channels > 1:
+            labels, label_weights = expand_binary_labels(
+                labels, label_weights, label_channels)
         bbox_targets = unmap(bbox_targets, num_total_anchors, inside_flags)
         bbox_weights = unmap(bbox_weights, num_total_anchors, inside_flags)
 
@@ -159,15 +157,25 @@ def anchor_target_single(flat_anchors,
             neg_inds)
 
 
+def expand_binary_labels(labels, label_weights, label_channels):
+    bin_labels = labels.new_full((labels.size(0), label_channels), 0)
+    inds = torch.nonzero(labels >= 1).squeeze()
+    if inds.numel() > 0:
+        bin_labels[inds, labels[inds] - 1] = 1
+    bin_label_weights = label_weights.view(-1, 1).expand(
+        label_weights.size(0), label_channels)
+    return bin_labels, bin_label_weights
+
+
 def anchor_inside_flags(flat_anchors, valid_flags, img_shape,
                         allowed_border=0):
     img_h, img_w = img_shape[:2]
     if allowed_border >= 0:
         inside_flags = valid_flags & \
-            (flat_anchors[:, 0] >= -allowed_border).type(torch.uint8) & \
-            (flat_anchors[:, 1] >= -allowed_border).type(torch.uint8) & \
-            (flat_anchors[:, 2] < img_w + allowed_border).type(torch.uint8) & \
-            (flat_anchors[:, 3] < img_h + allowed_border).type(torch.uint8)
+            (flat_anchors[:, 0] >= -allowed_border) & \
+            (flat_anchors[:, 1] >= -allowed_border) & \
+            (flat_anchors[:, 2] < img_w + allowed_border) & \
+            (flat_anchors[:, 3] < img_h + allowed_border)
     else:
         inside_flags = valid_flags
     return inside_flags
