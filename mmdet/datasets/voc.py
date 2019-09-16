@@ -1,10 +1,11 @@
-from .xml_style import XMLDataset
 from .registry import DATASETS
+from .xml_style import XMLDataset
+
 
 @DATASETS.register_module
 class VOCDataset(XMLDataset):
 
-    CLASSES = ('door','hline','gline')
+    CLASSES = ('mask', 'face', 'helmet')
 
     def __init__(self, **kwargs):
         super(VOCDataset, self).__init__(**kwargs)
