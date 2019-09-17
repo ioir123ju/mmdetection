@@ -29,7 +29,7 @@ def voc_eval(result_file, dataset, iou_thr=0.5):
     if not gt_ignore:
         gt_ignore = None
     if hasattr(dataset, 'year') and dataset.year == 2007:
-        dataset_name = 'voc07'
+        dataset_name = dataset.CLASSES
     else:
         dataset_name = dataset.CLASSES
     eval_map(

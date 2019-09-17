@@ -252,7 +252,8 @@ def eval_map(det_results,
                    if scale_ranges is not None else None)
     num_scales = len(scale_ranges) if scale_ranges is not None else 1
     eval_results = []
-    num_classes = len(det_results[0])  # positive class num
+    # num_classes = len(det_results[0])  # positive class num
+    num_classes = 3
     gt_labels = [
         label if label.ndim == 1 else label[:, 0] for label in gt_labels
     ]
