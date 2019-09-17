@@ -33,21 +33,21 @@ def listDir(path, list_name):
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-cfg = mmcv.Config.fromfile('configs/voc_faster_rcnn_r50_fpn_1x.py')
+cfg = mmcv.Config.fromfile('configs/libra_rcnn/voc_libra_faster_rcnn_r50_fpn_1x.py')
 cfg.model.pretrained = None
 
 # YangHE/mmdetection-master/work_dirs/faster_rcnn_r50_fpn_1x_voc0712/epoch_1.pth
 # construct the model and load checkpoint
 
-model = init_detector(cfg, 'work_dirs/faster_rcnn_r50_fpn_1x/latest.pth', device='cuda:0')
+model = init_detector(cfg, 'work_dirs/libra_faster_rcnn_r50_fpn_1x/latest.pth', device='cuda:0')
 
 
-path = "data/my_grain"
+path = "/home/deep-learning/wenshen/Libra_R-CNN/data/VOCdevkit/VOC2007/JPEGImages/"
 # path = "data/VOCdevkit/VOC2007/JPEGImages"
 imgs = []
 listDir(path, imgs)
 for i, result in enumerate(inference_detector(model, imgs)):
-    show_result(imgs[i], result, model.CLASSES, out_file='result/grain/result_{}.jpg'.format(i))
+    show_result(imgs[i], result, model.CLASSES, out_file='result/mask/result_{}.jpg'.format(i))
 # print(result[0].shape)
 #
 # img = cv2.imread('test.jpg')
