@@ -5,7 +5,7 @@ from .xml_style import XMLDataset
 @DATASETS.register_module
 class VOCDataset(XMLDataset):
 
-    CLASSES = ('mask', 'face', 'helmet')
+    CLASSES = ('mask', 'face', 'helmet', 'person')
 
     def __init__(self, **kwargs):
         super(VOCDataset, self).__init__(**kwargs)

@@ -97,7 +97,8 @@ class DistEvalmAPHook(DistEvalHook):
             gt_ignore = None
         # If the dataset is VOC2007, then use 11 points mAP evaluation.
         if hasattr(self.dataset, 'year') and self.dataset.year == 2007:
-            ds_name = 'voc07'
+            # ds_name = 'voc07'
+            ds_name = self.dataset.CLASSES
         else:
             ds_name = self.dataset.CLASSES
         mean_ap, eval_results = eval_map(
