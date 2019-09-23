@@ -33,13 +33,13 @@ def listDir(path, list_name):
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-cfg = mmcv.Config.fromfile('configs/voc_retinanet_r50_fpn_1x.py')
+cfg = mmcv.Config.fromfile('configs/libra_rcnn/voc_2_libra_faster_rcnn_r50_fpn_1x.py')
 cfg.model.pretrained = None
 
 # YangHE/mmdetection-master/work_dirs/faster_rcnn_r50_fpn_1x_voc0712/epoch_1.pth
 # construct the model and load checkpoint
 
-model = init_detector(cfg, 'work_dirs/retinanet_r50_fpn_1x/latest.pth', device='cuda:0')
+model = init_detector(cfg, 'work_dirs/libra_faster_rcnn_r50_fpn_1x/latest.pth', device='cuda:0')
 
 
 path = "data/VOCdevkit/VOC2007/JPEGImages"
