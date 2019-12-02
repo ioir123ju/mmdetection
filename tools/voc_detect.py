@@ -2,12 +2,12 @@
 # -*- encoding: utf-8 -*-
 '''
 @File    :   voc_detect.py    
-@Contact :   juzheng@hxdi.com
+@Contact :   JZ
 @License :   (C)Copyright 2018-2019, Liugroup-NLPR-CASIA
 
 @Modify Time      @Author    @Version    @Desciption
 ------------      -------    --------    -----------
-2019/7/11 14:10   juzheng      1.0         None
+2019/7/11 14:10   JZ      1.0         None
 '''
 
 
@@ -17,6 +17,7 @@ import os
 import cv2
 import numpy as np
 import os
+
 
 def listDir(path, list_name):
     """
@@ -33,19 +34,35 @@ def listDir(path, list_name):
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-cfg = mmcv.Config.fromfile('configs/libra_rcnn/voc_2_libra_faster_rcnn_r50_fpn_1x.py')
+cfg = mmcv.Config.fromfile('configs/ttfnet/voc_ttfnet_d53_1x.py')
 cfg.model.pretrained = None
 
 # YangHE/mmdetection-master/work_dirs/faster_rcnn_r50_fpn_1x_voc0712/epoch_1.pth
 # construct the model and load checkpoint
 
-model = init_detector(cfg, 'work_dirs/libra_faster_rcnn_r50_fpn_1x/latest.pth', device='cuda:0')
+model = init_detector(cfg, 'work_dirs/ttfnet_d53_1x/latest.pth', device='cuda:0')
+
+cap = cv2.VideoCapture("/home/JZ/dataset/granary/29-1.avi")
+i = 0
+while True:
+
+    res, image1 = cap.read()
+    i += 1
+    if i % 15 != 0:
+        continue
+    image1 = cv2.resize(image1, (1024, 600))
+    result = inference_detector(model, image1)
+    show_result(image1, result, model.CLASSES, out_file='result/mask/result_{}.jpg'.format(i))
 
 
-path = "data/VOCdevkit/VOC2007/JPEGImages"
-# path = "data/VOCdevkit/VOC2007/JPEGImages"
+
 imgs = []
-listDir(path, imgs)
+path = "data/VOCdevkit/VOC2007/JPEGImages"
+with open('data/VOCdevkit/VOC2007/ImageSets/Main/test.txt', 'r') as file:
+    for line in file:
+        imgs.append(os.path.join(path, line.rstrip('\n') + ".jpg"))
+
+# listDir(path, imgs)
 for i, img in enumerate(imgs):
     result = inference_detector(model, img)
     show_result(img, result, model.CLASSES, out_file='result/mask/result_{}.jpg'.format(i))
