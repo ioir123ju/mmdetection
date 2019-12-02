@@ -809,7 +809,6 @@ class Albu(object):
             # add pseudo-field for filtration
             if self.filter_lost_elements:
                 results['idx_mapper'] = np.arange(len(results['bboxes']))
-
         results = self.aug(**results)
 
         if 'bboxes' in results:
