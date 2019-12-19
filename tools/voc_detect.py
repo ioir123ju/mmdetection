@@ -3,7 +3,7 @@
 '''
 @File    :   voc_detect.py    
 @Contact :   JZ
-@License :   (C)Copyright 2018-2019, Liugroup-NLPR-CASIA
+@License :   (C)Copyright 2018-2019, JZ All rights reserved.
 
 @Modify Time      @Author    @Version    @Desciption
 ------------      -------    --------    -----------
@@ -17,7 +17,8 @@ import os
 import cv2
 import numpy as np
 import os
-
+from torch2trt import torch2trt
+import torch
 
 def listDir(path, list_name):
     """
@@ -34,15 +35,15 @@ def listDir(path, list_name):
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-cfg = mmcv.Config.fromfile('configs/ttfnet/voc_ttfnet_d53_1x.py')
+cfg = mmcv.Config.fromfile('configs/reppoints/voc_reppoints_moment_r50_fpn_2x_mt.py')
 cfg.model.pretrained = None
 
 # YangHE/mmdetection-master/work_dirs/faster_rcnn_r50_fpn_1x_voc0712/epoch_1.pth
 # construct the model and load checkpoint
 
-model = init_detector(cfg, 'work_dirs/ttfnet_d53_1x/latest.pth', device='cuda:0')
-
-cap = cv2.VideoCapture("/home/JZ/dataset/granary/29-1.avi")
+model = init_detector(cfg, 'work_dirs/reppoints_moment_r50_fpn_2x_mt/latest.pth', device='cuda:0')
+x = torch.ones((1, 3, 800, 800)).cuda()
+cap = cv2.VideoCapture("/home/juzheng/dataset/granary/29-1.avi")
 i = 0
 while True:
 
@@ -52,6 +53,7 @@ while True:
         continue
     image1 = cv2.resize(image1, (1024, 600))
     result = inference_detector(model, image1)
+
     show_result(image1, result, model.CLASSES, out_file='result/mask/result_{}.jpg'.format(i))
 
 
@@ -83,3 +85,43 @@ for i, img in enumerate(imgs):
 # cv2.imshow("s", img)
 # cv2.waitKey(0)
 
+#
+# from mmdet.datasets import dali_transforms
+# import time
+#
+#
+# def test_dali():
+#     # eii = ExternalInputIterator(batch_size)
+#     # iterator = iter(eii)
+#
+#     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+#     cfg = mmcv.Config.fromfile('config/voc_2_libra_faster_rcnn_r50_fpn_1x.py')
+#     cfg.model.pretrained = None
+#     # granary_model = init_detector(cfg, 'model/libra.pth', device='cuda:0')
+#     person_model = init_detector(cfg, 'model/libra_person.pth', device='cuda:0')
+#     ann_file = cfg.data.test.ann_file
+#     image_ids = mmcv.list_from_file(ann_file)
+#     img_prefix = cfg.data.test.img_prefix
+#     batch_size = 32
+#
+#     num = len(image_ids)
+#     eii = dali_transforms.ExternalInputIterator(img_prefix, ann_file, batch_size, device_id=0, num_gpus=1)
+#     pipe = dali_transforms.ExternalSourcePipeline(batch_size=batch_size, num_threads=2, device_id=0, external_data=eii,
+#                                                   cfg=cfg.img_norm_cfg)
+#     pipe.build()
+#     start = time.clock()
+#
+#     for i in range(num // batch_size + 1):
+#         try:
+#             images, labels = pipe.run()
+#             print('frame :', len(images))
+#
+#         except Exception as e:
+#             print(e)
+#             # cv2.imshow("{}".format(image_id), imageout1)
+#             # cv2.waitKey()
+#             # pass
+#             # cv2.destroyWindow("{}".format(image_id))
+#             break
+#     elapsed = (time.clock() - start)
+#     print('NUM:{}, TIME USE:{}'.format(num, elapsed))
