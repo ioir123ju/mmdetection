@@ -837,6 +837,7 @@ class Albu(object):
             if isinstance(results['bboxes'], list):
                 results['bboxes'] = np.array(
                     results['bboxes'], dtype=np.float32)
+            results['bboxes'] = results['bboxes'].reshape(-1, 4)
 
             # filter label_fields
             if self.filter_lost_elements:
@@ -857,6 +858,7 @@ class Albu(object):
         if 'gt_labels' in results:
             if isinstance(results['gt_labels'], list):
                 results['gt_labels'] = np.array(results['gt_labels'])
+            results['gt_labels'] = results['gt_labels'].astype(np.int64)
 
         # back to the original format
         results = self.mapper(results, self.keymap_back)
